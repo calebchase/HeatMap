@@ -29,7 +29,7 @@ async function getElasticData() {
       aggs: {
         targetHistograms: {
           composite: {
-            size: 10,
+            size: 10000,
             sources: [
               {
                 target: {

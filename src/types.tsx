@@ -1,3 +1,6 @@
+type shiftOpperation = '+' | '-';
+type calendarIntervalType = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
+
 interface heatMapConstructor {
     calendarInterval: calendarIntervalType;
     startDate: Date;
@@ -5,7 +8,17 @@ interface heatMapConstructor {
     autoFetchData: boolean;
 }
 
-type shiftOpperation = '+' | '-';
-type calendarIntervalType = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
+interface margin {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+}
 
-export type {heatMapConstructor, shiftOpperation, calendarIntervalType};
+interface d3Dimensions {
+    margin: margin;
+    height: number;
+    width: number;
+}
+
+export type {heatMapConstructor, shiftOpperation, calendarIntervalType, d3Dimensions};

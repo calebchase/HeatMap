@@ -1,4 +1,4 @@
-import {parseISO, add as addDate, sub as subDate} from 'date-fns' ;
+import {parseISO, add as addDate, sub as subDate, compareDesc} from 'date-fns' ;
 import React from 'react';
 import getElasticData from './GetElasticData';
 import {heatMapConstructor, shiftOpperation, calendarIntervalType} from './types';
@@ -68,6 +68,18 @@ class heatMapData {
 
     async fetchData() {
         let elasticData = await getElasticData();
+    }
+
+    getTimeDomain(): Array<Date> {
+        let timeDomain: Array<Date> = [];
+        let tempDate = this.startDate;
+
+        while (compareDesc(tempDate, this.endDate) !== -1) {
+            timeDomain.push(tempDate);
+            tempDate = addDate(tempDate, getIntervalObject(this.calendarInterval));
+        }
+
+        return timeDomain;
     }
 }
 
