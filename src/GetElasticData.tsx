@@ -70,8 +70,8 @@ async function getElasticData() {
     }
   
     const data = await response.json();
-    console.log(data.hits.hits[0]._source);
-    console.log(data.aggregations.targetHistograms.buckets);
+    console.log(data)
+    return data.aggregations.targetHistograms.buckets;
 }
 
 export default getElasticData;
