@@ -20,7 +20,7 @@ function initSVG(svgRef: React.MutableRefObject<null> , heatMapDim: d3Dimensions
 
 function createHeatMapDim(): d3Dimensions {
     const heatMapDim: d3Dimensions = {
-        margin: {top: 120, right: 30, bottom: 30, left: 120},
+        margin: {top: 30, right: 30, bottom: 30, left: 120},
         width: 0,
         height: 0,
     }
@@ -48,15 +48,18 @@ function createY(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions): d3.S
     return y;
 }
 
-function drawHeatMapRect(svg:any, heatMap: heatMapData, heatMapDim: d3Dimensions, d3x: d3.ScaleBand<string>, d3y: d3.ScaleBand<string>) {
 
-    let color = d3.scaleLinear<string>().range(["white", "green"]).domain([1, 1000]);
+// TODO: too many params!!!!
+function drawHeatMapRect(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions, d3x: d3.ScaleBand<string>, d3y: d3.ScaleBand<string>, setSelectedDate: React.Dispatch<React.SetStateAction<string>>
+    , setSelectedKey: React.Dispatch<React.SetStateAction<string>>,
+setSelectedCount:  React.Dispatch<React.SetStateAction<string>>) {
+
+    let color = d3.scaleLinear<string>().range(["white", "green"]).domain([1, 10000]);
 
     for (const ele of heatMap.elasticData) {
         for (const bucket of ele.dateHistogram.buckets) {
             let xKey: string = heatMap.dateToKey(toDate(bucket.key));
             let yKey: string = ele.key.target;
-
 
             if (d3x(xKey) === undefined || d3y(yKey) === undefined ) continue;
 
@@ -66,14 +69,20 @@ function drawHeatMapRect(svg:any, heatMap: heatMapData, heatMapDim: d3Dimensions
                 .attr("y", () => d3y(yKey))
                 .attr("width", d3x.bandwidth())
                 .attr("height", d3y.bandwidth())
-                .style("fill", () => color(bucket.doc_count));
+                .style("fill", () => color(bucket.doc_count))
+                .on("mouseover", () => {
+                    console.log(bucket);
+                    setSelectedKey(ele.key.target);
+                    setSelectedDate(heatMap.dateToKey(toDate(bucket.key)));
+                    setSelectedCount(bucket.doc_count);
+                })
         }
     }
 }
 
 let heatMapParams: heatMapConstructor = {
     calendarInterval: 'month',
-    startDate: new Date(new Date(2020, 3, 1, 0, 0, 0)),
+    startDate: new Date(new Date(2021, 3, 1, 0, 0, 0)),
     endDate: new Date(2022, 5, 1, 0, 0, 0),
     autoFetchData: true,
     column: "NORMALIZED_TARGET"
@@ -90,6 +99,9 @@ function CreateHeatMap() {
     const [col, setCol] = React.useState(heatMap.column);
     const [startDate, setStartDate] = React.useState(heatMap.startDate.toISOString());
     const [endDate, setEndDate] = React.useState(heatMap.endDate.toISOString());
+    const [selectedDate, setSelectedDate] = React.useState("NONE");
+    const [selectedKey, setSelectedKey] = React.useState("NONE");
+    const [selectedCount, setSelectedCount] = React.useState("NONE");
 
     heatMap.setStartDateHook = setStartDate;
     heatMap.setEndDateHook = setEndDate;
@@ -108,19 +120,30 @@ function CreateHeatMap() {
             setEndDate(heatMap.endDate.toISOString())
             heatMap.panUnit = d3x.bandwidth();
              
-            drawHeatMapRect(svg, heatMap, heatMapDim, d3x, d3y);   
+            drawHeatMapRect(svg, heatMap, heatMapDim, d3x, d3y,
+                            setSelectedDate, setSelectedKey, setSelectedCount);   
         });
     }); 
     
-    return  <div>
+    return  <div className="padLeft padTop">
                 <select value={col} onChange={e => setCol(e.currentTarget.value)}> 
                     {JSON.parse(colArray).map((option: any) => (
                         <option value={option} key={option}>{option}</option>
                     ))}
                 </select>
+                <div className="padTop">
+                    KEY: {selectedKey}
+                </div>
+                <div>
+                    DATE: {selectedDate}
+                </div>
+                <div>
+                    COUNT: {selectedCount}
+                </div>
                 <div>
                     <svg id="heatMapSVG" ref={svgRef}/>
                 </div>
+                
             </div>;
 }
 
