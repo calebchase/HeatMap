@@ -25,8 +25,12 @@ class heatMapData {
     endDate: Date;
     autoFetchData: boolean;
     intervalArray: Array<calendarIntervalType> = ['minute', 'hour', 'day', 'month', 'year'];
-    intervalIndex: number = -1;
+    intervalIndex: number;
     column: string;
+    panUnit: number = Infinity;
+    setStartDateHook?: React.Dispatch<React.SetStateAction<string>>;
+    setEndDateHook?: React.Dispatch<React.SetStateAction<string>>;
+
 
     constructor(input: heatMapConstructor) {
         this.startDate = input.startDate;
@@ -35,16 +39,6 @@ class heatMapData {
         this.autoFetchData = input.autoFetchData;
         this.intervalIndex = this.intervalArray.indexOf(this.calendarInterval);
         this.column = input.column;
-    }
-
-    setStartDate(newStartDate: Date): heatMapData {
-        this.startDate = newStartDate;
-        return this;
-    }
-
-    setEndDate(newEndDate: Date): heatMapData {
-        this.endDate = newEndDate;
-        return this;
     }
 
     setCalendarInterval(newCalendarInterval: calendarIntervalType): heatMapData {
@@ -64,6 +58,7 @@ class heatMapData {
     }
 
     shiftEndDate(shift: shiftOpperation): heatMapData {
+        console.log(this.calendarInterval);
         if (shift === '+')
             this.endDate = addDate(this.endDate, getIntervalObject(this.calendarInterval))
         else
@@ -73,7 +68,6 @@ class heatMapData {
     }
 
     async fetchData() {
-        console.log(this.column);
         this.elasticData = await getElasticData(this.calendarInterval, this.column);
     }
 
@@ -105,12 +99,11 @@ class heatMapData {
 
     dateToKey(date: Date): string {
         let key: string = `${date.getFullYear()}`;
-        //intervalArray: Array<calendarIntervalType> = ['minute', 'hour', 'day', 'month', 'year'];
 
         if (this.intervalIndex < 4)
             key += `/${date.getMonth()}`;
         if (this.intervalIndex < 3)
-            key += `/${date.getDay()}`;
+            key += `/${date.getDate()}`;
         if (this.intervalIndex < 2)
             key += `/${date.getHours()}`;
         if (this.intervalIndex < 1)

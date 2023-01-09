@@ -4,6 +4,7 @@ import heatMapData from './ElasticData'
 import {heatMapConstructor, d3Dimensions} from './types';
 import {toDate} from 'date-fns' ;
 import * as d3 from "d3";
+import initUserNav from './userNav';
 
 function initSVG(svgRef: React.MutableRefObject<null> , heatMapDim: d3Dimensions) {
     // Prevents cases of duplication 
@@ -56,6 +57,9 @@ function drawHeatMapRect(svg:any, heatMap: heatMapData, heatMapDim: d3Dimensions
             let xKey: string = heatMap.dateToKey(toDate(bucket.key));
             let yKey: string = ele.key.target;
 
+
+            if (d3x(xKey) === undefined || d3y(yKey) === undefined ) continue;
+
             svg
                 .append("rect")
                 .attr("x", () => d3x(xKey))
@@ -67,21 +71,30 @@ function drawHeatMapRect(svg:any, heatMap: heatMapData, heatMapDim: d3Dimensions
     }
 }
 
-function CreateHeatMap() {
-    let heatMapParams: heatMapConstructor = {
-        calendarInterval: 'day',
-        startDate: new Date(new Date(2021, 5, 0, 0, 0, 0)),
-        endDate: new Date(2022, 5, 0, 0, 0, 0),
-        autoFetchData: true,
-        column: "NORMALIZED_TARGET"
-    }
+let heatMapParams: heatMapConstructor = {
+    calendarInterval: 'month',
+    startDate: new Date(new Date(2020, 3, 1, 0, 0, 0)),
+    endDate: new Date(2022, 5, 1, 0, 0, 0),
+    autoFetchData: true,
+    column: "NORMALIZED_TARGET"
+}
 
-    const heatMap: heatMapData = new heatMapData(heatMapParams);
+const heatMap: heatMapData = new heatMapData(heatMapParams);
+
+
+function CreateHeatMap() {
     const svgRef: React.MutableRefObject<null> = React.useRef(null);
     const heatMapDim: d3Dimensions = createHeatMapDim();
 
     const [colArray, setColArray] = React.useState(JSON.stringify(heatMap.getColKeys()));
     const [col, setCol] = React.useState(heatMap.column);
+    const [startDate, setStartDate] = React.useState(heatMap.startDate.toISOString());
+    const [endDate, setEndDate] = React.useState(heatMap.endDate.toISOString());
+
+    heatMap.setStartDateHook = setStartDate;
+    heatMap.setEndDateHook = setEndDate;
+
+    initUserNav(0, heatMap, setStartDate, setEndDate);
 
     React.useEffect(() => {
         heatMap.column = col;
@@ -90,9 +103,12 @@ function CreateHeatMap() {
             let svg = initSVG(svgRef, heatMapDim);
             const d3x: d3.ScaleBand<string> = createX(svg, heatMap, heatMapDim);
             const d3y: d3.ScaleBand<string> = createY(svg, heatMap, heatMapDim);
-
+            
             setColArray(JSON.stringify(heatMap.getColKeys()));
-            drawHeatMapRect(svg, heatMap, heatMapDim, d3x, d3y);     
+            setEndDate(heatMap.endDate.toISOString())
+            heatMap.panUnit = d3x.bandwidth();
+             
+            drawHeatMapRect(svg, heatMap, heatMapDim, d3x, d3y);   
         });
     }); 
     
@@ -102,7 +118,9 @@ function CreateHeatMap() {
                         <option value={option} key={option}>{option}</option>
                     ))}
                 </select>
-                <svg ref={svgRef}/> 
+                <div>
+                    <svg id="heatMapSVG" ref={svgRef}/>
+                </div>
             </div>;
 }
 

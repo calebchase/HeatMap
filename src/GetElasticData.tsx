@@ -14,7 +14,7 @@ async function getElasticData(interval: string, column: string) {
           filter: [
             {
               range: {
-                NORMALIZED_DATETIME: { gte: "2021-01-01", lte: "2022-03-01" },
+                NORMALIZED_DATETIME: { gte: "2020-01-01", lte: "2023-03-01" },
               },
             },
           ],
