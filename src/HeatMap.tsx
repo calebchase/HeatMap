@@ -5,16 +5,9 @@ import {heatMapConstructor, d3Dimensions} from './types';
 import {toDate} from 'date-fns' ;
 import * as d3 from "d3";
 
-let heatMapParams: heatMapConstructor = {
-    calendarInterval: 'month',
-    startDate: new Date(new Date(2020, 5, 0, 0, 0, 0)),
-    endDate: new Date(2022, 5, 0, 0, 0, 0),
-    autoFetchData: true
-}
-
 function initSVG(svgRef: React.MutableRefObject<null> , heatMapDim: d3Dimensions) {
     // Prevents cases of duplication 
-    // d3.select(svgRef.current).selectAll("*").remove();
+     d3.select(svgRef.current).selectAll("*").remove();
 
     return d3
             .select(svgRef.current)
@@ -54,9 +47,9 @@ function createY(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions): d3.S
     return y;
 }
 
-function drawHeatMap(svg:any, heatMap: heatMapData, heatMapDim: d3Dimensions, d3x: d3.ScaleBand<string>, d3y: d3.ScaleBand<string>) {
+function drawHeatMapRect(svg:any, heatMap: heatMapData, heatMapDim: d3Dimensions, d3x: d3.ScaleBand<string>, d3y: d3.ScaleBand<string>) {
 
-    let color = d3.scaleLinear<string>().range(["white", "green"]).domain([1, 10000]);
+    let color = d3.scaleLinear<string>().range(["white", "green"]).domain([1, 1000]);
 
     for (const ele of heatMap.elasticData) {
         for (const bucket of ele.dateHistogram.buckets) {
@@ -75,27 +68,42 @@ function drawHeatMap(svg:any, heatMap: heatMapData, heatMapDim: d3Dimensions, d3
 }
 
 function CreateHeatMap() {
+    let heatMapParams: heatMapConstructor = {
+        calendarInterval: 'day',
+        startDate: new Date(new Date(2021, 5, 0, 0, 0, 0)),
+        endDate: new Date(2022, 5, 0, 0, 0, 0),
+        autoFetchData: true,
+        column: "NORMALIZED_TARGET"
+    }
+
     const heatMap: heatMapData = new heatMapData(heatMapParams);
     const svgRef: React.MutableRefObject<null> = React.useRef(null);
     const heatMapDim: d3Dimensions = createHeatMapDim();
-    const svg = initSVG(svgRef, heatMapDim);
 
-    const [num, setCount] = React.useState(0);
+    const [colArray, setColArray] = React.useState(JSON.stringify(heatMap.getColKeys()));
+    const [col, setCol] = React.useState(heatMap.column);
 
     React.useEffect(() => {
-        heatMap.fetchData().then(() => {
-            console.log(heatMap.elasticData);
+        heatMap.column = col;
 
+        heatMap.fetchData().then(() => {
+            let svg = initSVG(svgRef, heatMapDim);
             const d3x: d3.ScaleBand<string> = createX(svg, heatMap, heatMapDim);
             const d3y: d3.ScaleBand<string> = createY(svg, heatMap, heatMapDim);
-            drawHeatMap(svg, heatMap, heatMapDim, d3x, d3y);
-            
-            setCount(1);
+
+            setColArray(JSON.stringify(heatMap.getColKeys()));
+            drawHeatMapRect(svg, heatMap, heatMapDim, d3x, d3y);     
         });
-        // svg.append("circle").attr("r", 25);
     }); 
     
-    return <svg ref={svgRef}/>;;
+    return  <div>
+                <select value={col} onChange={e => setCol(e.currentTarget.value)}> 
+                    {JSON.parse(colArray).map((option: any) => (
+                        <option value={option} key={option}>{option}</option>
+                    ))}
+                </select>
+                <svg ref={svgRef}/> 
+            </div>;
 }
 
 function HeatMap() {

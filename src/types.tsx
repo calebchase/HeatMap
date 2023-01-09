@@ -6,6 +6,7 @@ interface heatMapConstructor {
     startDate: Date;
     endDate: Date;
     autoFetchData: boolean;
+    column: string
 }
 
 interface margin {

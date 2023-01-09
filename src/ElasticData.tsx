@@ -24,12 +24,17 @@ class heatMapData {
     startDate: Date;
     endDate: Date;
     autoFetchData: boolean;
-    
+    intervalArray: Array<calendarIntervalType> = ['minute', 'hour', 'day', 'month', 'year'];
+    intervalIndex: number = -1;
+    column: string;
+
     constructor(input: heatMapConstructor) {
         this.startDate = input.startDate;
         this.endDate = input.endDate;
         this.calendarInterval = input.calendarInterval;
         this.autoFetchData = input.autoFetchData;
+        this.intervalIndex = this.intervalArray.indexOf(this.calendarInterval);
+        this.column = input.column;
     }
 
     setStartDate(newStartDate: Date): heatMapData {
@@ -68,7 +73,8 @@ class heatMapData {
     }
 
     async fetchData() {
-        this.elasticData = await getElasticData();
+        console.log(this.column);
+        this.elasticData = await getElasticData(this.calendarInterval, this.column);
     }
 
     getTimeDomain(): Array<string> {
@@ -93,8 +99,35 @@ class heatMapData {
         return range;
     }
 
+    getColKeys(): Array<string> {
+        return this.elasticData?.colKeys !== undefined ? this.elasticData.colKeys : ["EMPTY"];
+    }
+
     dateToKey(date: Date): string {
-        return (`${date.getFullYear()}/${date.getMonth()}`);
+        let key: string = `${date.getFullYear()}`;
+        //intervalArray: Array<calendarIntervalType> = ['minute', 'hour', 'day', 'month', 'year'];
+
+        if (this.intervalIndex < 4)
+            key += `/${date.getMonth()}`;
+        if (this.intervalIndex < 3)
+            key += `/${date.getDay()}`;
+        if (this.intervalIndex < 2)
+            key += `/${date.getHours()}`;
+        if (this.intervalIndex < 1)
+            key += `/${date.getMinutes()}`;
+
+        return key;
+    }
+
+    shiftIntervalIndex(shift: shiftOpperation): heatMapData {
+        if (shift === '+' && this.intervalIndex + 1 < this.intervalArray.length)
+            this.intervalIndex++;
+        else if (this.intervalIndex - 1 >= 0)
+            this.intervalIndex--;
+
+        this.calendarInterval = this.intervalArray[this.intervalIndex];
+
+        return this;
     }
 }
 

@@ -1,4 +1,4 @@
-async function getElasticData() {
+async function getElasticData(interval: string, column: string) {
     let headers = new Headers();
     headers.set("Accept", "application/json");
     headers.set("Content-Type", "application/json");
@@ -34,7 +34,8 @@ async function getElasticData() {
               {
                 target: {
                   terms: {
-                    field: "NORMALIZED_TARGET",
+                    field: column,
+                    //field: "IMSI",
                   },
                 },
               },
@@ -44,7 +45,7 @@ async function getElasticData() {
             dateHistogram: {
               date_histogram: {
                 field: "NORMALIZED_DATETIME",
-                calendar_interval: "month",
+                calendar_interval: interval,
                 // extended_bounds: {
                 //   min: filters.dateRange.after.getTime(),
                 //   max: filters.dateRange.before.getTime(),
@@ -70,7 +71,7 @@ async function getElasticData() {
     }
   
     const data = await response.json();
-    console.log(data)
+    data.aggregations.targetHistograms.buckets["colKeys"] = Object.keys(data.hits.hits[0]._source);
     return data.aggregations.targetHistograms.buckets;
 }
 
