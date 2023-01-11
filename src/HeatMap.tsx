@@ -76,6 +76,12 @@ setSelectedCount:  React.Dispatch<React.SetStateAction<string>>) {
                     setSelectedDate(heatMap.dateToKey(toDate(bucket.key)));
                     setSelectedCount(bucket.doc_count);
                 })
+                .on("mouseout", () => {
+                    console.log(bucket);
+                    setSelectedKey("NONE");
+                    setSelectedDate("NONE");
+                    setSelectedCount("NONE");
+                })
         }
     }
 }

@@ -4,7 +4,7 @@ import { getCommentRange } from 'typescript';
 import getElasticData from './GetElasticData';
 import {heatMapConstructor, shiftOpperation, calendarIntervalType} from './types';
 
-function getIntervalObject(interval: calendarIntervalType): {[k: string]: number} {
+function getIntervalObject(interval: calendarIntervalType, intervalCount: number = 1): {[k: string]: number} {
     let obj: {[k: string]: number} = {};
     let count: number = 1;
 
@@ -13,7 +13,7 @@ function getIntervalObject(interval: calendarIntervalType): {[k: string]: number
         count = 3
     }
 
-    obj[`${interval}s`] = count;
+    obj[`${interval}s`] = count * intervalCount;
 
     return obj;
 }
@@ -31,7 +31,6 @@ class heatMapData {
     setStartDateHook?: React.Dispatch<React.SetStateAction<string>>;
     setEndDateHook?: React.Dispatch<React.SetStateAction<string>>;
 
-
     constructor(input: heatMapConstructor) {
         this.startDate = input.startDate;
         this.endDate = input.endDate;
@@ -40,6 +39,21 @@ class heatMapData {
         this.intervalIndex = this.intervalArray.indexOf(this.calendarInterval);
         this.column = input.column;
     }
+
+    getIntervalObject(interval: calendarIntervalType, intervalCount: number = 1): {[k: string]: number} {
+        let obj: {[k: string]: number} = {};
+        let count: number = 1;
+    
+        if (interval === 'quarter') {
+            interval = 'month';
+            count = 3
+        }
+    
+        obj[`${interval}s`] = count * intervalCount;
+    
+        return obj;
+    }
+    
 
     setCalendarInterval(newCalendarInterval: calendarIntervalType): heatMapData {
         this.calendarInterval = newCalendarInterval;

@@ -1,4 +1,6 @@
 import heatMapData from "./ElasticData";
+import {format, add as addDate, sub as subDate, compareDesc} from 'date-fns' ;
+
 
 let init = false;
 
@@ -40,20 +42,27 @@ function initUserNav(panUnit: number, heatMap: heatMapData,
         
         offset = startMouseDownPos.x - event.pageX;
 
-        if (offset > heatMap.panUnit) {
-            heatMap.shiftEndDate('+');
-            heatMap.shiftStartDate('+');
-            offset = 0;
+        // if (offset > heatMap.panUnit) {
+        //     heatMap.shiftEndDate('+');
+        //     heatMap.shiftStartDate('+');
+        //     offset = 0;
+        //     startMouseDownPos.x = event.pageX
+        // }
+
+        // else if (offset < -heatMap.panUnit ) {
+        //     heatMap.shiftEndDate('-');
+        //     heatMap.shiftStartDate('-');
+        //     offset = 0;
+        //     startMouseDownPos.x = event.pageX
+        // }
+
+        if (offset >= heatMap.panUnit || offset <= -heatMap.panUnit) {
+            heatMap.startDate = setNewBoundsPan(heatMap, heatMap.startDate, offset / heatMap.panUnit);
+            heatMap.endDate = setNewBoundsPan(heatMap, heatMap.endDate, offset / heatMap.panUnit);
+           
             startMouseDownPos.x = event.pageX
         }
 
-        else if (offset < -heatMap.panUnit ) {
-            heatMap.shiftEndDate('-');
-            heatMap.shiftStartDate('-');
-            offset = 0;
-            startMouseDownPos.x = event.pageX
-        }
-        
         if (heatMap.setStartDateHook !== undefined) 
             heatMap.setStartDateHook(heatMap.startDate.toISOString());
         if (heatMap.setEndDateHook !== undefined) 
@@ -61,6 +70,11 @@ function initUserNav(panUnit: number, heatMap: heatMapData,
     })
 
     init = true;
+}
+
+// maybe move this to heatmapdata
+function setNewBoundsPan(heatMap: heatMapData, date: Date, intervalCount: number): Date {    
+    return addDate(date, heatMap.getIntervalObject(heatMap.calendarInterval, intervalCount));
 }
 
 export default initUserNav;
