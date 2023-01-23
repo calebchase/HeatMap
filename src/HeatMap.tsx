@@ -33,16 +33,20 @@ function createHeatMapDim(): d3Dimensions {
 
 function createX(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions): d3.ScaleBand<string> {
     const x: d3.ScaleBand<string> = d3.scaleBand().range([0, heatMapDim.width]).domain(heatMap.getTimeDomain());
+    var xAxis = d3.axisBottom(x)
+  .tickValues(x.domain().filter(function(d,i){ return !(i%3)}));
     svg
         .append("g")
         .attr("transform", `translate(0, ${heatMapDim.height})`)
-        .call(d3.axisBottom(x));
+        .call(xAxis) 
+        
+    
 
     return x;
 }
 
-function createY(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions): d3.ScaleBand<string> {
-    const y: d3.ScaleBand<string> = d3.scaleBand().range([heatMapDim.height, 0]).domain(heatMap.getRange());
+function createY(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions, maxYCount: number): d3.ScaleBand<string> {
+    const y: d3.ScaleBand<string> = d3.scaleBand().range([heatMapDim.height, 0]).domain(heatMap.getRange("asc", maxYCount));
     svg.append("g").call(d3.axisLeft(y));
 
     return y;
@@ -54,7 +58,7 @@ function drawHeatMapRect(svg: any, heatMap: heatMapData, heatMapDim: d3Dimension
     , setSelectedKey: React.Dispatch<React.SetStateAction<string>>,
 setSelectedCount:  React.Dispatch<React.SetStateAction<string>>) {
 
-    let color = d3.scaleLinear<string>().range(["white", "green"]).domain([1, 10000]);
+    let color = d3.scaleLinear<string>().range(["white", "green"]).domain([1, 500]);
 
     for (const ele of heatMap.elasticData) {
         for (const bucket of ele.dateHistogram.buckets) {
@@ -71,13 +75,11 @@ setSelectedCount:  React.Dispatch<React.SetStateAction<string>>) {
                 .attr("height", d3y.bandwidth())
                 .style("fill", () => color(bucket.doc_count))
                 .on("mouseover", () => {
-                    console.log(bucket);
                     setSelectedKey(ele.key.target);
                     setSelectedDate(heatMap.dateToKey(toDate(bucket.key)));
                     setSelectedCount(bucket.doc_count);
                 })
                 .on("mouseout", () => {
-                    console.log(bucket);
                     setSelectedKey("NONE");
                     setSelectedDate("NONE");
                     setSelectedCount("NONE");
@@ -87,9 +89,9 @@ setSelectedCount:  React.Dispatch<React.SetStateAction<string>>) {
 }
 
 let heatMapParams: heatMapConstructor = {
-    calendarInterval: 'month',
-    startDate: new Date(new Date(2021, 3, 1, 0, 0, 0)),
-    endDate: new Date(2022, 5, 1, 0, 0, 0),
+    calendarInterval: 'day',
+    startDate: new Date(new Date(2022, 1, 1, 0, 0, 0)),
+    endDate: new Date(2022, 3, 1, 0, 0, 0),
     autoFetchData: true,
     column: "NORMALIZED_TARGET"
 }
@@ -108,6 +110,8 @@ function CreateHeatMap() {
     const [selectedDate, setSelectedDate] = React.useState("NONE");
     const [selectedKey, setSelectedKey] = React.useState("NONE");
     const [selectedCount, setSelectedCount] = React.useState("NONE");
+    const [maxYCount, setMaxYCount] = React.useState(30);
+
 
     heatMap.setStartDateHook = setStartDate;
     heatMap.setEndDateHook = setEndDate;
@@ -120,7 +124,7 @@ function CreateHeatMap() {
         heatMap.fetchData().then(() => {
             let svg = initSVG(svgRef, heatMapDim);
             const d3x: d3.ScaleBand<string> = createX(svg, heatMap, heatMapDim);
-            const d3y: d3.ScaleBand<string> = createY(svg, heatMap, heatMapDim);
+            const d3y: d3.ScaleBand<string> = createY(svg, heatMap, heatMapDim, maxYCount);
             
             setColArray(JSON.stringify(heatMap.getColKeys()));
             setEndDate(heatMap.endDate.toISOString())
@@ -130,13 +134,28 @@ function CreateHeatMap() {
                             setSelectedDate, setSelectedKey, setSelectedCount);   
         });
     }); 
+
+
+    let setOnChange = (e: React.FormEvent<HTMLInputElement>): void => {
+        if (e)
+        setMaxYCount( parseInt(e.currentTarget.value, 10)|| -1);
+      };
     
     return  <div className="padLeft padTop">
+                <div>Y Column:</div>
+
                 <select value={col} onChange={e => setCol(e.currentTarget.value)}> 
                     {JSON.parse(colArray).map((option: any) => (
                         <option value={option} key={option}>{option}</option>
                     ))}
                 </select>
+                {/* NEED TO FIX UNDEFINED */}
+                <div className="padTop">
+                    Max Y Count:
+                </div>
+                <div>
+                    <input type="number" value={maxYCount == -1 ? undefined:maxYCount } onChange={setOnChange} />
+                </div>
                 <div className="padTop">
                     KEY: {selectedKey}
                 </div>

@@ -97,14 +97,24 @@ class heatMapData {
         return timeDomain;
     }
 
-    getRange(): Array<string> {
+    getRange(order: string, maxShown: number): Array<string> {
         let range: Array<string> = [];
-
+        let keySumPair: Array<{key: string, sum: number}> = [];
         for (const ele of this.elasticData) {
             range.push(ele.key.target);
+
+            keySumPair.push({
+                key: ele.key.target,
+                sum: ele.dateHistogram.buckets.reduce(
+                        (acc: number, val: any) => acc + val.doc_count, 0)
+            });
         }
 
-        return range;
+        if (order == "asc") keySumPair.sort((a, b) => a.sum - b.sum);
+        if (order == "desc") keySumPair.sort((a, b) => b.sum - a.sum);
+        let start = keySumPair.length - maxShown;
+        start = start < 0 ? 0 : start;
+        return keySumPair.map(ele => ele.key).slice(start, keySumPair.length);
     }
 
     getColKeys(): Array<string> {
@@ -115,7 +125,7 @@ class heatMapData {
         let key: string = `${date.getFullYear()}`;
 
         if (this.intervalIndex < 4)
-            key += `/${date.getMonth()}`;
+            key += `/${date.getMonth() + 1}`;
         if (this.intervalIndex < 3)
             key += `/${date.getDate()}`;
         if (this.intervalIndex < 2)
