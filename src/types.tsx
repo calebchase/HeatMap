@@ -1,5 +1,5 @@
 type shiftOpperation = '+' | '-';
-type calendarIntervalType = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
+type calendarIntervalType = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | '7d';
 
 interface heatMapConstructor {
     calendarInterval: calendarIntervalType;

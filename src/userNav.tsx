@@ -69,6 +69,26 @@ function initUserNav(panUnit: number, heatMap: heatMapData,
             heatMap.setEndDateHook(heatMap.endDate.toISOString());
     })
 
+    let wheelDisY = 0;
+    window.addEventListener("wheel", (event: WheelEvent) => {
+        let zoomUnit = 160;
+
+        if (!mouseInHeatMap(event)) return;
+        wheelDisY += event.deltaY;
+        if (Math.abs(wheelDisY) < 200) return;
+
+        heatMap.startDate = setNewBoundsPan(heatMap, heatMap.startDate, wheelDisY / zoomUnit);
+        heatMap.endDate = setNewBoundsPan(heatMap, heatMap.endDate, (wheelDisY / zoomUnit) * -1);
+        heatMap.autoInterval();
+
+        wheelDisY %= zoomUnit;
+
+        if (heatMap.setStartDateHook !== undefined) 
+            heatMap.setStartDateHook(heatMap.startDate.toISOString());
+        if (heatMap.setEndDateHook !== undefined) 
+            heatMap.setEndDateHook(heatMap.endDate.toISOString());
+    });
+
     init = true;
 }
 

@@ -1,4 +1,4 @@
-import {format, add as addDate, sub as subDate, compareDesc} from 'date-fns' ;
+import {format, add as addDate, sub as subDate, compareDesc, differenceInDays} from 'date-fns' ;
 import React from 'react';
 import { getCommentRange } from 'typescript';
 import getElasticData from './GetElasticData';
@@ -48,8 +48,13 @@ class heatMapData {
             interval = 'month';
             count = 3
         }
+
+        if (interval === 'week') {
+            interval = 'day';
+            count = 7
+        }
     
-        obj[`${interval}s`] = count * intervalCount;
+        obj[`${interval}s`] = Math.round(count * intervalCount);
     
         return obj;
     }
@@ -72,7 +77,6 @@ class heatMapData {
     }
 
     shiftEndDate(shift: shiftOpperation): heatMapData {
-        console.log(this.calendarInterval);
         if (shift === '+')
             this.endDate = addDate(this.endDate, getIntervalObject(this.calendarInterval))
         else
@@ -94,7 +98,33 @@ class heatMapData {
             tempDate = addDate(tempDate, getIntervalObject(this.calendarInterval));
         }
 
+        console.log(timeDomain)
+
         return timeDomain;
+    }
+
+    // getBucketCount(): number {
+    //     let bucketCount = 0;
+
+    //     differenceInDays(this.startDate, this.endDate)
+    // }
+
+
+    autoInterval(): void {
+        let bucketCount = 0;
+
+        if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 125)
+            this.calendarInterval = 'month';
+        else
+            this.calendarInterval = 'day';
+
+            this.intervalIndex = this.intervalArray.indexOf(this.calendarInterval);
+
+            console.log(this.startDate);
+            console.log(this.endDate);
+
+        console.log(Math.abs(differenceInDays(this.endDate, this.startDate)));
+        
     }
 
     getRange(order: string, maxShown: number): Array<string> {

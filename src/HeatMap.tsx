@@ -39,9 +39,6 @@ function createX(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions): d3.S
         .append("g")
         .attr("transform", `translate(0, ${heatMapDim.height})`)
         .call(xAxis) 
-        
-    
-
     return x;
 }
 
@@ -89,9 +86,9 @@ setSelectedCount:  React.Dispatch<React.SetStateAction<string>>) {
 }
 
 let heatMapParams: heatMapConstructor = {
-    calendarInterval: 'day',
+    calendarInterval: 'month',
     startDate: new Date(new Date(2022, 1, 1, 0, 0, 0)),
-    endDate: new Date(2022, 3, 1, 0, 0, 0),
+    endDate: new Date(2022, 4, 1, 0, 0, 0),
     autoFetchData: true,
     column: "NORMALIZED_TARGET"
 }
