@@ -5,6 +5,7 @@ import {heatMapConstructor, d3Dimensions} from './types';
 import {toDate} from 'date-fns' ;
 import * as d3 from "d3";
 import initUserNav from './userNav';
+import { debug } from 'console';
 
 function initSVG(svgRef: React.MutableRefObject<null> , heatMapDim: d3Dimensions) {
     // Prevents cases of duplication 
@@ -42,8 +43,8 @@ function createX(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions): d3.S
     return x;
 }
 
-function createY(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions, maxYCount: number): d3.ScaleBand<string> {
-    const y: d3.ScaleBand<string> = d3.scaleBand().range([heatMapDim.height, 0]).domain(heatMap.getRange("asc", maxYCount));
+function createY(svg: any, heatMap: heatMapData, heatMapDim: d3Dimensions, maxYCount: number, sortType: string): d3.ScaleBand<string> {
+    const y: d3.ScaleBand<string> = d3.scaleBand().range([heatMapDim.height, 0]).domain(heatMap.getRange(sortType, maxYCount));
     svg.append("g").call(d3.axisLeft(y));
 
     return y;
@@ -108,6 +109,8 @@ function CreateHeatMap() {
     const [selectedKey, setSelectedKey] = React.useState("NONE");
     const [selectedCount, setSelectedCount] = React.useState("NONE");
     const [maxYCount, setMaxYCount] = React.useState(30);
+    const [sortType, setSortType] = React.useState("asc");
+
 
 
     heatMap.setStartDateHook = setStartDate;
@@ -117,11 +120,12 @@ function CreateHeatMap() {
 
     React.useEffect(() => {
         heatMap.column = col;
+        console.log(sortType);
 
         heatMap.fetchData().then(() => {
             let svg = initSVG(svgRef, heatMapDim);
             const d3x: d3.ScaleBand<string> = createX(svg, heatMap, heatMapDim);
-            const d3y: d3.ScaleBand<string> = createY(svg, heatMap, heatMapDim, maxYCount);
+            const d3y: d3.ScaleBand<string> = createY(svg, heatMap, heatMapDim, maxYCount, sortType);
             
             setColArray(JSON.stringify(heatMap.getColKeys()));
             setEndDate(heatMap.endDate.toISOString())
@@ -145,6 +149,10 @@ function CreateHeatMap() {
                     {JSON.parse(colArray).map((option: any) => (
                         <option value={option} key={option}>{option}</option>
                     ))}
+                </select>
+                    <select value={sortType} onChange={e => setSortType(e.currentTarget.value)}> 
+                    <option value="asc" key="asc">Asc</option>
+                    <option value="desc" key="desc">Desc</option>
                 </select>
                 {/* NEED TO FIX UNDEFINED */}
                 <div className="padTop">

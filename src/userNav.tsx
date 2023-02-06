@@ -42,20 +42,6 @@ function initUserNav(panUnit: number, heatMap: heatMapData,
         
         offset = startMouseDownPos.x - event.pageX;
 
-        // if (offset > heatMap.panUnit) {
-        //     heatMap.shiftEndDate('+');
-        //     heatMap.shiftStartDate('+');
-        //     offset = 0;
-        //     startMouseDownPos.x = event.pageX
-        // }
-
-        // else if (offset < -heatMap.panUnit ) {
-        //     heatMap.shiftEndDate('-');
-        //     heatMap.shiftStartDate('-');
-        //     offset = 0;
-        //     startMouseDownPos.x = event.pageX
-        // }
-
         if (offset >= heatMap.panUnit || offset <= -heatMap.panUnit) {
             heatMap.startDate = setNewBoundsPan(heatMap, heatMap.startDate, offset / heatMap.panUnit);
             heatMap.endDate = setNewBoundsPan(heatMap, heatMap.endDate, offset / heatMap.panUnit);
@@ -71,15 +57,19 @@ function initUserNav(panUnit: number, heatMap: heatMapData,
 
     let wheelDisY = 0;
     window.addEventListener("wheel", (event: WheelEvent) => {
-        let zoomUnit = 160;
+        let zoomUnit = 100;
 
         if (!mouseInHeatMap(event)) return;
         wheelDisY += event.deltaY;
-        if (Math.abs(wheelDisY) < 200) return;
+        if (Math.abs(wheelDisY) < zoomUnit) return;
 
         heatMap.startDate = setNewBoundsPan(heatMap, heatMap.startDate, wheelDisY / zoomUnit);
         heatMap.endDate = setNewBoundsPan(heatMap, heatMap.endDate, (wheelDisY / zoomUnit) * -1);
         heatMap.autoInterval();
+        // if (heatMap.autoInterval()) {
+        //     heatMap.startDate = setNewBoundsPan(heatMap, heatMap.startDate, (wheelDisY / zoomUnit) * -1);
+        //     heatMap.endDate = setNewBoundsPan(heatMap, heatMap.endDate, (wheelDisY / zoomUnit));
+        // }
 
         wheelDisY %= zoomUnit;
 

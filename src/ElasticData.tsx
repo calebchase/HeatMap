@@ -110,21 +110,28 @@ class heatMapData {
     // }
 
 
-    autoInterval(): void {
+    autoInterval(): boolean {
         let bucketCount = 0;
+        let change = false;
 
-        if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 125)
+        if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 125
+            && this.calendarInterval === "day") {
             this.calendarInterval = 'month';
-        else
+            change = true;
+        }
+        else if (Math.abs(differenceInDays(this.endDate, this.startDate)) <= 125
+                 && this.calendarInterval === "month") {
             this.calendarInterval = 'day';
+        }
 
-            this.intervalIndex = this.intervalArray.indexOf(this.calendarInterval);
+        this.intervalIndex = this.intervalArray.indexOf(this.calendarInterval);
 
-            console.log(this.startDate);
-            console.log(this.endDate);
+        console.log(this.startDate);
+        console.log(this.endDate);
 
         console.log(Math.abs(differenceInDays(this.endDate, this.startDate)));
         
+        return change;
     }
 
     getRange(order: string, maxShown: number): Array<string> {
@@ -140,8 +147,8 @@ class heatMapData {
             });
         }
 
-        if (order == "asc") keySumPair.sort((a, b) => a.sum - b.sum);
-        if (order == "desc") keySumPair.sort((a, b) => b.sum - a.sum);
+        if (order == "desc") keySumPair.sort((a, b) => a.sum - b.sum);
+        if (order == "asc") keySumPair.sort((a, b) => b.sum - a.sum);
         let start = keySumPair.length - maxShown;
         start = start < 0 ? 0 : start;
         return keySumPair.map(ele => ele.key).slice(start, keySumPair.length);
