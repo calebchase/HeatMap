@@ -5,7 +5,6 @@ import {heatMapConstructor, d3Dimensions} from './types';
 import {toDate} from 'date-fns' ;
 import * as d3 from "d3";
 import initUserNav from './userNav';
-import { debug } from 'console';
 
 function initSVG(svgRef: React.MutableRefObject<null> , heatMapDim: d3Dimensions) {
     // Prevents cases of duplication 
@@ -57,13 +56,13 @@ function drawHeatMapRect(svg: any, heatMap: heatMapData, heatMapDim: d3Dimension
 setSelectedCount:  React.Dispatch<React.SetStateAction<string>>) {
 
     let color = d3.scaleLinear<string>().range(["white", "green"]).domain([1, 500]);
-
     for (const ele of heatMap.elasticData) {
         for (const bucket of ele.dateHistogram.buckets) {
             let xKey: string = heatMap.dateToKey(toDate(bucket.key));
             let yKey: string = ele.key.target;
 
             if (d3x(xKey) === undefined || d3y(yKey) === undefined ) continue;
+
 
             svg
                 .append("rect")
@@ -87,7 +86,7 @@ setSelectedCount:  React.Dispatch<React.SetStateAction<string>>) {
 }
 
 let heatMapParams: heatMapConstructor = {
-    calendarInterval: 'month',
+    calendarInterval: 'week',
     startDate: new Date(new Date(2022, 1, 1, 0, 0, 0)),
     endDate: new Date(2022, 4, 1, 0, 0, 0),
     autoFetchData: true,
@@ -120,7 +119,6 @@ function CreateHeatMap() {
 
     React.useEffect(() => {
         heatMap.column = col;
-        console.log(sortType);
 
         heatMap.fetchData().then(() => {
             let svg = initSVG(svgRef, heatMapDim);

@@ -1,4 +1,6 @@
-import {format, add as addDate, sub as subDate, compareDesc, differenceInDays} from 'date-fns' ;
+import {format, add as addDate, sub as subDate, compareDesc, differenceInDays, fromUnixTime, toDate} from 'date-fns' ;
+import { subDays } from 'date-fns/esm';
+import te from 'date-fns/esm/locale/te/index.js';
 import React from 'react';
 import { getCommentRange } from 'typescript';
 import getElasticData from './GetElasticData';
@@ -24,7 +26,7 @@ class heatMapData {
     startDate: Date;
     endDate: Date;
     autoFetchData: boolean;
-    intervalArray: Array<calendarIntervalType> = ['minute', 'hour', 'day', 'month', 'year'];
+    intervalArray: Array<calendarIntervalType> = ['minute', 'hour', 'day', 'week', 'month', 'year'];
     intervalIndex: number;
     column: string;
     panUnit: number = Infinity;
@@ -50,8 +52,8 @@ class heatMapData {
         }
 
         if (interval === 'week') {
-            interval = 'day';
-            count = 7
+            //interval = 'day';
+            //count = 7
         }
     
         obj[`${interval}s`] = Math.round(count * intervalCount);
@@ -93,12 +95,21 @@ class heatMapData {
         let timeDomain: Array<string> = [];
         let tempDate = this.startDate;
 
+
+        if (this.calendarInterval === 'week') {
+            let bucketDay = toDate(this.elasticData[3].dateHistogram.buckets[0].key).getDay();
+            let offsetDays = Math.abs(bucketDay - tempDate.getDay());
+
+
+
+            tempDate = subDays(tempDate, offsetDays);
+
+        }
+
         while (compareDesc(tempDate, this.endDate) !== -1) {
             timeDomain.push(this.dateToKey(tempDate));            
             tempDate = addDate(tempDate, getIntervalObject(this.calendarInterval));
         }
-
-        console.log(timeDomain)
 
         return timeDomain;
     }
@@ -113,23 +124,28 @@ class heatMapData {
     autoInterval(): boolean {
         let bucketCount = 0;
         let change = false;
+        let prevState = this.calendarInterval;
 
-        if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 125
-            && this.calendarInterval === "day") {
+        if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 125) {
             this.calendarInterval = 'month';
-            change = true;
         }
-        else if (Math.abs(differenceInDays(this.endDate, this.startDate)) <= 125
-                 && this.calendarInterval === "month") {
+        else if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 50) {
+            this.calendarInterval = 'week';
+        }
+        else {
             this.calendarInterval = 'day';
         }
 
+        // if (this.calendarInterval != prevState) {
+        //     change = true;
+        //     this.calendarInterval = prevState;
+        // }
+
+
         this.intervalIndex = this.intervalArray.indexOf(this.calendarInterval);
 
-        console.log(this.startDate);
-        console.log(this.endDate);
-
-        console.log(Math.abs(differenceInDays(this.endDate, this.startDate)));
+        // console.log(this.startDate);
+        // console.log(this.endDate);
         
         return change;
     }
@@ -149,8 +165,10 @@ class heatMapData {
 
         if (order == "desc") keySumPair.sort((a, b) => a.sum - b.sum);
         if (order == "asc") keySumPair.sort((a, b) => b.sum - a.sum);
+
         let start = keySumPair.length - maxShown;
         start = start < 0 ? 0 : start;
+
         return keySumPair.map(ele => ele.key).slice(start, keySumPair.length);
     }
 
@@ -161,14 +179,16 @@ class heatMapData {
     dateToKey(date: Date): string {
         let key: string = `${date.getFullYear()}`;
 
-        if (this.intervalIndex < 4)
+        if (this.intervalIndex < 5)
             key += `/${date.getMonth() + 1}`;
-        if (this.intervalIndex < 3)
+        if (this.intervalIndex < 4)
             key += `/${date.getDate()}`;
         if (this.intervalIndex < 2)
             key += `/${date.getHours()}`;
         if (this.intervalIndex < 1)
             key += `/${date.getMinutes()}`;
+
+       // console.log(key)
 
         return key;
     }

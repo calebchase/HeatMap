@@ -63,10 +63,16 @@ function initUserNav(panUnit: number, heatMap: heatMapData,
         wheelDisY += event.deltaY;
         if (Math.abs(wheelDisY) < zoomUnit) return;
 
+        let increment =  wheelDisY / zoomUnit;
+        increment = increment > 1 ? 1 : increment;
+
         heatMap.startDate = setNewBoundsPan(heatMap, heatMap.startDate, wheelDisY / zoomUnit);
         heatMap.endDate = setNewBoundsPan(heatMap, heatMap.endDate, (wheelDisY / zoomUnit) * -1);
+
         heatMap.autoInterval();
-        // if (heatMap.autoInterval()) {
+
+        // if (heatMap.autoInterval(true)) {
+        //     console.log("hit")
         //     heatMap.startDate = setNewBoundsPan(heatMap, heatMap.startDate, (wheelDisY / zoomUnit) * -1);
         //     heatMap.endDate = setNewBoundsPan(heatMap, heatMap.endDate, (wheelDisY / zoomUnit));
         // }
