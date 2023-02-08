@@ -32,6 +32,7 @@ class heatMapData {
     panUnit: number = Infinity;
     setStartDateHook?: React.Dispatch<React.SetStateAction<string>>;
     setEndDateHook?: React.Dispatch<React.SetStateAction<string>>;
+    refetchData: boolean = true;
     div: number = 800;
 
     constructor(input: heatMapConstructor) {
@@ -89,7 +90,9 @@ class heatMapData {
     }
 
     async fetchData() {
-        this.elasticData = await getElasticData(this.calendarInterval, this.column);
+        if (this.refetchData)
+            this.elasticData = await getElasticData(this.calendarInterval, this.column);
+        this.refetchData = false;
     }
 
     getTimeDomain(): Array<string> {
@@ -100,8 +103,6 @@ class heatMapData {
         if (this.calendarInterval === 'week') {
             let bucketDay = toDate(this.elasticData[3].dateHistogram.buckets[0].key).getDay();
             let offsetDays = Math.abs(bucketDay - tempDate.getDay());
-
-
 
             tempDate = subDays(tempDate, offsetDays);
 
@@ -126,6 +127,7 @@ class heatMapData {
         let bucketCount = 0;
         let change = false;
         let prevState = this.calendarInterval;
+        let dayDiff = Math.abs(differenceInDays(this.endDate, this.startDate));
 
         if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 175) {
             this.calendarInterval = 'month';
@@ -135,15 +137,17 @@ class heatMapData {
             this.calendarInterval = 'week';
             this.div = 1800;
         }
-        else {
+        else /*if (dayDiff > 25)*/ {
             this.calendarInterval = 'day';
             this.div = 400;
         }
-
-        // if (this.calendarInterval != prevState) {
-        //     change = true;
-        //     this.calendarInterval = prevState;
+        // else if (dayDiff > 4) {
+        //     this.calendarInterval = 'hour';
         // }
+
+        if (this.calendarInterval != prevState) {
+            this.refetchData = true;
+        }
 
 
         this.intervalIndex = this.intervalArray.indexOf(this.calendarInterval);
