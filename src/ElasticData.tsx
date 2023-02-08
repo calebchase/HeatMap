@@ -32,6 +32,7 @@ class heatMapData {
     panUnit: number = Infinity;
     setStartDateHook?: React.Dispatch<React.SetStateAction<string>>;
     setEndDateHook?: React.Dispatch<React.SetStateAction<string>>;
+    refetchData: boolean = true;
 
     constructor(input: heatMapConstructor) {
         this.startDate = input.startDate;
@@ -88,7 +89,9 @@ class heatMapData {
     }
 
     async fetchData() {
-        this.elasticData = await getElasticData(this.calendarInterval, this.column);
+        if (this.refetchData)
+            this.elasticData = await getElasticData(this.calendarInterval, this.column);
+        this.refetchData = false;
     }
 
     getTimeDomain(): Array<string> {
@@ -99,8 +102,6 @@ class heatMapData {
         if (this.calendarInterval === 'week') {
             let bucketDay = toDate(this.elasticData[3].dateHistogram.buckets[0].key).getDay();
             let offsetDays = Math.abs(bucketDay - tempDate.getDay());
-
-
 
             tempDate = subDays(tempDate, offsetDays);
 
@@ -125,21 +126,24 @@ class heatMapData {
         let bucketCount = 0;
         let change = false;
         let prevState = this.calendarInterval;
+        let dayDiff = Math.abs(differenceInDays(this.endDate, this.startDate));
 
-        if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 125) {
+        if (dayDiff > 125) {
             this.calendarInterval = 'month';
         }
-        else if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 50) {
+        else if (dayDiff > 50) {
             this.calendarInterval = 'week';
         }
-        else {
+        else /*if (dayDiff > 25)*/ {
             this.calendarInterval = 'day';
         }
-
-        // if (this.calendarInterval != prevState) {
-        //     change = true;
-        //     this.calendarInterval = prevState;
+        // else if (dayDiff > 4) {
+        //     this.calendarInterval = 'hour';
         // }
+
+        if (this.calendarInterval != prevState) {
+            this.refetchData = true;
+        }
 
 
         this.intervalIndex = this.intervalArray.indexOf(this.calendarInterval);
