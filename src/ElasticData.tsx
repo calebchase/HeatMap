@@ -32,6 +32,7 @@ class heatMapData {
     panUnit: number = Infinity;
     setStartDateHook?: React.Dispatch<React.SetStateAction<string>>;
     setEndDateHook?: React.Dispatch<React.SetStateAction<string>>;
+    div: number = 800;
 
     constructor(input: heatMapConstructor) {
         this.startDate = input.startDate;
@@ -126,14 +127,17 @@ class heatMapData {
         let change = false;
         let prevState = this.calendarInterval;
 
-        if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 125) {
+        if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 175) {
             this.calendarInterval = 'month';
+            this.div = 9000;
         }
-        else if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 50) {
+        else if (Math.abs(differenceInDays(this.endDate, this.startDate)) > 35) {
             this.calendarInterval = 'week';
+            this.div = 1800;
         }
         else {
             this.calendarInterval = 'day';
+            this.div = 400;
         }
 
         // if (this.calendarInterval != prevState) {

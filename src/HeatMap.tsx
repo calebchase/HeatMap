@@ -55,7 +55,7 @@ function drawHeatMapRect(svg: any, heatMap: heatMapData, heatMapDim: d3Dimension
     , setSelectedKey: React.Dispatch<React.SetStateAction<string>>,
 setSelectedCount:  React.Dispatch<React.SetStateAction<string>>) {
 
-    let color = d3.scaleLinear<string>().range(["white", "green"]).domain([1, 500]);
+    let color = d3.scaleLinear<string>().range(["white", "green"]).domain([1, heatMap.div]);
     for (const ele of heatMap.elasticData) {
         for (const bucket of ele.dateHistogram.buckets) {
             let xKey: string = heatMap.dateToKey(toDate(bucket.key));
